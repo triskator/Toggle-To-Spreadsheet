@@ -1,0 +1,174 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+	/**
+	 * Run initializations on sidebar load.
+	 */
+
+	var loadedUsers = null;
+
+	function initSidebar() {
+
+		$('#load-button').click(onLoadClick);
+
+		// Call the server here to retrieve any information needed to build
+		// the dialog, if necessary.
+
+		google.script.run.withSuccessHandler(
+				function(msg) {
+					var element = $('#clients');
+					element.append($('<option>').text('--vyberte--'));
+					for (var i = 0; i < msg.length; i++) {
+						element.append($('<option>')
+								.attr('value', msg[i]['id']).text(
+										msg[i]['name']));
+					}
+				}).getClients();
+	}
+
+	initSidebar();
+
+	function onLoadClick() {
+		//console.log($("#users form").serializeArray());
+		saveAllUsers();
+
+		this.disabled = true;
+		google.script.run.withSuccessHandler(function(msg, element) {
+			element.disabled = false;
+		}).withFailureHandler(function(msg, element) {
+			element.disabled = false;
+		}).withUserObject(this).getTimeEntries($('#clients').val(),
+				$('#timerange').val(), $('#clients option:selected').text(),
+				$('#toSheets').is(':checked'));
+	}
+
+	/**
+	 * Save user's fields from the form #user-edit, which is loaded by selectbox #usersinrange
+	 */
+	function saveAllUsers() {
+		var inputs = $("#users form").serializeArray();
+		var clientId = $("#clients").val();
+		var userId = $("#user-id").val();
+		var inputsArray = {};
+		if (userId != "") {
+			$.each(inputs, function(i, field) {
+				var fieldName = field.name;
+				fieldName = fieldName.substr(fieldName.indexOf('-') + 1);
+
+				var key = clientId + "-" + userId + "-" + fieldName;
+				loadedUsers[userId][fieldName] = field.value;
+				inputsArray[key] = field.value;
+			});
+			google.script.run.saveUsers(JSON.stringify(inputsArray));
+		}
+	}
+
+	/**
+	 * Displays the given status message in the sidebar.
+	 *
+	 * @param {String} msg The status message to display.
+	 * @param {String} classId The message type (class id) that the message
+	 *   should be displayed as.
+	 */
+	function showStatus(msg, classId) {
+		$('#sidebar-status').removeClass().html(msg);
+		if (classId) {
+			$('#sidebar-status').addClass(classId);
+		}
+	}
+
+	/**
+	 * Create and maintain selectbox of users which are visible in the selected time range and client.
+	 */
+	function findUsersWithinRange() {
+		$('#edit-user').hide();
+		var container = $('#usersinrange');
+		container.html('');
+		container.append($('<option>').attr('value', "none").text(
+				"Vyberte uživatele"));
+		google.script.run.withSuccessHandler(
+				function(msg) {
+					var client = $('#clients').val();
+					var element = $("#users");
+					$('#edit-user').hide();
+					var users = JSON.parse(msg);
+					loadedUsers = users;
+
+					for ( var key in users) {
+						// var row = $('<select/>');
+						if (users.hasOwnProperty(key)) {
+							var obj = users[key];
+							for ( var prop in obj) {
+								// important check that this is objects own property 
+								// not from prototype prop inherited
+								if (obj.hasOwnProperty(prop)) {
+									if (prop == "name") {
+										container.append($('<option>').attr(
+												'value', key).text(obj[prop]));
+									}
+								}
+							}
+						}
+					}
+
+				}).getUsersWithinTheRange($('#clients').val(),
+				$('#timerange').val(), $('#clients option:selected').text());
+		//.getAllClientUsers($('#clients').val() );
+	}
+
+	/**
+	 * On selectbox #clients change will be loaded users within selected range
+	 */
+	$('#clients').on("change", function() {
+		findUsersWithinRange();
+	});
+
+	/**
+	 * On selectbox #timerange change will be loaded users within selected range
+	 */
+	$('#timerange').on("change", function() {
+		findUsersWithinRange();
+	});
+
+	/**
+	 * On change of selectbox $usersinrange get latest setting for users.
+	 * For each user should exist field name, price and currency,
+	 * which can be updated.
+	 */
+	$('#usersinrange').on("change", function() {
+		var userId = $('#usersinrange').val();
+		if ('none' === userId) {
+			$('#edit-user').hide();
+			return false;
+		}
+		var selectedUser = loadedUsers[userId];
+		$('#user-id').val(userId);
+		for ( var prop in selectedUser) {
+			// important check that this is objects own property 
+			// not from prototype prop inherited
+			if (selectedUser.hasOwnProperty(prop)) {
+				if (prop == "name") {
+					$('#user-name').text(selectedUser[prop]);
+				} else if ("price" == prop) {
+					$('#user-price').val(selectedUser[prop]);
+				} else if ("currency" == prop) {
+					$('#user-currency').val(selectedUser[prop]);
+				}
+			}
+		}
+		$('#edit-user').show();
+
+	});
+
+	/**
+	 * Store values of selected user in #usersinrange.
+	 */
+	$('#save-user').on("click", function() {
+		var btn = this;
+		btn.disabled = true;
+		saveAllUsers();
+		setTimeout(function() {
+			btn.disabled = false;
+		}, 1000);
+
+	});
+</script>

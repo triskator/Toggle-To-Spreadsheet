@@ -1,0 +1,49 @@
+<!-- Use a templated HTML printing scriptlet to import common stylesheet. -->
+<?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+
+<!-- Below is the HTML code that defines the sidebar element structure. -->
+<div class="sidebar branding-below">
+	<p>Klient:</p>
+	<select id="clients"></select>
+	<p>Časové rozmezí:</p>
+	<select id="timerange">
+		<option value="lastweek">minulý týden</option>
+		<option value="lastmonth">minulý měsíc</option>
+		<option value="thisweek">tento týden</option>
+		<option value="thismonth">tento měsíc</option>
+	</select>
+	<br/><br/>
+	<input type="checkbox" id="toSheets"><label for="toSheets">Rozdělit projekty do sešitů?</label>
+	<div id="users">
+		<p>Vyberte uživatele, kterému chcete upravit hodnoty</p>
+		<select id="usersinrange">
+			<option value="none">Vyberte uživatele</option>
+		</select>
+		<form id="edit-user" onsubmit="return false" autocomplete="off" style="display: none">
+			<div class="row">
+				<h1 id="user-name">
+				</h1>
+				<input id="user-id" name="user-id" type="hidden">
+				<br>
+				<label for="user-price">Cena</label>
+				<input autocomplete="off" id="user-price" name="user-price" type="text">
+				<br>
+				<label for="user-currency">Měna</label>
+				<select id="user-currency" name="user-currency">
+					<option value="[$$]#,##0.00">$$</option>
+					<option value="#,##0.00 [$Kč]">Kč</option>
+                    <option value="#,##0.00 [$€]">€</option>
+				</select>
+				<br>
+				<input type="submit" value="Uložit" id="save-user">
+			</div>
+		</form>
+	</div>  
+	<p>
+		<button id="load-button">Načíst z Togglu</button>
+	</p>
+	<div id="sidebar-status"></div>
+</div>
+
+<!-- Use a templated HTML printing scriptlet to import JavaScript. -->
+<?!= HtmlService.createHtmlOutputFromFile('SidebarJavaScript').getContent(); ?>

@@ -1,0 +1,34 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+	/**
+	 * Run initializations on Toggle Settings Dialog.
+	 */
+	function initSettings() {
+
+		// Call the server here to retrieve any information needed to build
+		// the dialog, if necessary.
+		google.script.run.withSuccessHandler(function(msg) {
+			var element;
+			for (var i = 0; i < msg.length; i++) {
+				element = $("#" + msg[i]["name"]);
+				element.val(msg[i]["value"]);
+			}
+		}).getToggleSettings();
+	}
+
+	function saveToggleValues() {
+		var values = $("#settings input[type=text]");
+		var settings = new Array();
+		$.each(values, function(index, value) {
+			var id = $(value).attr("id");
+			var valueText = $(value).val();
+			settings.push({
+				"name" : id,
+				"value" : valueText
+			});
+		});
+		google.script.run.setToggleSettings((settings));
+	}
+
+	initSettings();
+</script>

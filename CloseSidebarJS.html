@@ -1,0 +1,13 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+	/**
+	 * Run initializations on Toggle Settings Dialog.
+	 */
+	$(function() {
+
+		// Call the server here to retrieve any information needed to build
+		// the dialog, if necessary.
+		google.script.run.withSuccessHandler(google.script.host.close)
+				.withUserObject(this).justCloseDamnSidebar();
+	});
+</script>
